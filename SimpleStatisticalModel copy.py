@@ -49,3 +49,11 @@ print("\nNumber of mature proteins:")
 print(mature_proteins_count)
 
 """
+
+
+"""
+there are twenty different amino acids 
+(listed in the class AminoAcido of the file aux). for each entry of Primary Structure 
+i want to count the number of occurences of each amino acid at every position form -p to +q 
+arounf the cleavage site that is already computed  
+  """
