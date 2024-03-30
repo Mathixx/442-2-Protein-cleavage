@@ -22,8 +22,15 @@ site or not. A simple thresholding (to be tuned) is then enough to define a simp
 """
 
 import pandas as pd
+import math
+from aux import *
 
-# Define a function to process each entry
+# Read data from a file into a list of entries
+with open('/Users/mathiasperez/Documents/GitHub/442-2-Protein-cleavage/data/EUKSIG_13.red', 'r') as file:
+    entries = file.read().split('\n   ')
+
+
+# Define a function to process each entry in the data file
 def process_entry(entry):
     lines = entry.split('\n')
     protein_id, primary_structure, annotation = lines
@@ -33,10 +40,6 @@ def process_entry(entry):
         'Annotation': annotation
     }
 
-# Read data from a file into a list of entries
-with open('/Users/mathiasperez/Documents/GitHub/442-2-Protein-cleavage/data/EUKSIG_13.red', 'r') as file:
-    entries = file.read().split('\n   ')
-
 
 # Process each entry
 processed_entries = [process_entry(entry) for entry in entries]
@@ -45,39 +48,89 @@ processed_entries = [process_entry(entry) for entry in entries]
 df = pd.DataFrame(processed_entries)
 
 # Now you can analyze the DataFrame as needed
-# For example, you can count the occurrences of each amino acid in the primary structure
+# For example, you could count the occurrences of each amino acid in the primary structure
+"""
 amino_acid_counts = df['Primary Structure'].apply(lambda x: pd.Series(list(x))).stack().value_counts()
+"""
 
-# Or you can analyze the annotations to count the number of signal peptides and mature proteins
-signal_peptides_count = df['Annotation'].apply(lambda x: x.count('S'))
-mature_proteins_count = df['Annotation'].apply(lambda x: x.count('M'))
+
+# Get the position of the cleavage site
+cleavage_site_position = df['Annotation'].apply(lambda x: x.find('C'))
+print("Position of the cleavage site:")
+print(cleavage_site_position)
+
+
+"""
+Over a set of N sequences, with a known cleavage site for each, one can first count c(a, i), 
+the number of occurrences of each amino acid a ∈ A, at every position i ∈ {−p, ..., q − 1}, 
+relative to the corresponding cleavage site. 
+Then, for each a and i, let define f(a,i) = c(a,i)/N, 
+the observed frequency of amino acid a at the relative position i.
+"""
+
+# Count the occurrences of each amino acid at every position relative to the cleavage site
+amino_acid_counts = df['Primary Structure'].apply(lambda x: pd.Series(list(x))).stack().reset_index(drop=True).to_frame('Amino Acid')
+
+print(amino_acid_counts)
+
+amino_acid_counts['Position'] = amino_acid_counts.groupby(level=0).cumcount() - cleavage_site_position
+amino_acid_counts = amino_acid_counts.groupby(['Amino Acid', 'Position']).size().unstack(fill_value=0)
+
+# Calculate the observed frequency of each amino acid at the relative position
+observed_frequency = amino_acid_counts.div(len(df))
+
+# Calculate the logarithm of the observed frequency
+log_observed_frequency = observed_frequency.applymap(lambda x: math.log(x) if x > 0 else float('-inf'))
+
+# Compute the general background frequency of each amino acid
+general_background_frequency = observed_frequency.mean()
+
+# Calculate the logarithm of the general background frequency
+log_general_background_frequency = general_background_frequency.apply(lambda x: math.log(x) if x > 0 else float('-inf'))
+
+# Calculate the score for each amino acid at every position
+score = log_observed_frequency.subtract(log_general_background_frequency, axis=1)
+
+# Calculate the q-1 score for each word
+q_minus_1_score = score.sum(axis=1)
+
+# Define a threshold for the binary classifier
+threshold = 0
+
+# Classify each word as cleavage site or not based on the q-1 score
+df['Cleavage Site'] = q_minus_1_score > threshold
 
 # Print the results
+print("Position of the cleavage site:")
+
+"""
 print("Counts of each amino acid:")
 print(amino_acid_counts)
-print("\nNumber of signal peptides:")
-print(signal_peptides_count)
-print("\nNumber of mature proteins:")
-print(mature_proteins_count)
+print("\nObserved frequency of each amino acid at the relative position:")
+print(observed_frequency)
+print("\nLogarithm of the observed frequency:")
+print(log_observed_frequency)
+print("\nGeneral background frequency of each amino acid:")
+print(general_background_frequency)
+print("\nLogarithm of the general background frequency:")
+print(log_general_background_frequency)
+print("\nScore for each amino acid at every position:")
+print(score)
+print("\nq-1 score for each word:")
+print(q_minus_1_score)
+print("\nClassification result:")
+print(df[['Primary Structure', 'Cleavage Site']])
+"""
 
-# Define a function to calculate the distance of each amino acid from the cleavage site
-def distance_from_cleavage_site(primary_structure, annotation,AminoList):
-    # Find the position of the cleavage site
-    cleavage_site_end = annotation.find('C')
-    
-    # Calculate the distance  can be negtaive of each amino acid from the cleavage site
-    #not the first one cause it is the Met needed for traduction
-    
-    for i in range(1, len(primary_structure)):
-        distance = (i - cleavage_site_end)
-        AminoList[primary_structure[i]].append(distance)
-    
-    return
 
+"""
+AminoList = { }
 # Apply the function to each row in the DataFrame
 test = df['Distance from Cleavage Site'] = df.apply(lambda row: distance_from_cleavage_site(row['Primary Structure'], row['Annotation']), axis=1)
 
 # Now you can analyze the DataFrame to see which amino acid is closer to the cleavage site
 print("distance from cleavage site :\n")
 print(test)
+"""
+
 
