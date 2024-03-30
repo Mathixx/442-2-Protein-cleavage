@@ -109,6 +109,11 @@ print("\n")
 Over a set of N sequences, with a known cleavage site for each, one can first count c(a, i), 
 the number of occurrences of each amino acid a ∈ A, at every position i ∈ {−p, ..., q − 1}, 
 relative to the corresponding cleavage site. 
+We are facing a binary classification problem. 
+Given any whole protein sequence (ai)i=0,...,l−1, and any position j, where p ≤ j ≤ l−q, 
+the word aj−paj−p+1 · · · aj−1aj · · · aj+q−1 ∈ Ap+q should be enough to decide 
+whether the bond at position j, between aj−1 and aj, is a cleavage site or not.
+
 Then, for each a and i, let define f(a,i) = c(a,i)/N, 
 the observed frequency of amino acid a at the relative position i.
 """
@@ -126,22 +131,26 @@ q = 2
 # Create a DataFrame to store the counts of each amino acid at every position relative to the cleavage site
 #the cleavage site is between to aminoacids, so cleavage_site_position is the position of the first amino acid after the cleavge site
 #So i need to create a dataframe with columns from -p to q without 0
-amino_acid_counts = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=list(range(-p, 0)) + list(range(1, q)))
-amino_acid_freqs = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=list(range(-p, 0)) + list(range(1, q)))
-amino_acid_pseudo_counts = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=list(range(-p, 0)) + list(range(1, q)))
-amino_acid_s_values = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=list(range(-p, 0)) + list(range(1, q)))
+amino_acid_counts = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=range(-p, q))
+amino_acid_freqs = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=range(-p, q))
+amino_acid_pseudo_counts = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=range(-p, q))
+amino_acid_s_values = pd.DataFrame(0, index=AminoAcid.properties.keys(), columns=range(-p, q))
 
 
 # Count the occurrences of each amino acid at every position relative to the cleavage site
 
 for i, seq in amino_acid_seq.items():
     for j, aa in enumerate(seq):
-        position = j - cleavage_site_position[i] + 1 if j - cleavage_site_position[i] >= 0 else j - cleavage_site_position[i]
+        position = j - cleavage_site_position[i] #position of the amino acid relative to the cleavage site
         if position in amino_acid_counts.columns:
             amino_acid_counts.loc[aa.code, position] += 1
 
 # Add pseudo-counts to avoid zero counts here pseudocount parameter is 1/len(df)
 amino_acid_pseudo_counts = amino_acid_counts + 1
+
+# Print the results
+print("Occurrences of each amino acid at every position relative to the cleavage site:")
+print(amino_acid_pseudo_counts)
 
 # Compute the observed frequency of each amino acid at the relative position (using pseudo-counts)
 for i in amino_acid_counts.index:
@@ -162,37 +171,26 @@ for i in amino_acid_counts.index:
         
 # Define the function computing the q-1 score for a given word
 def q_minus_1_score(word):
-    return sum([amino_acid_s_values.loc[aa.code, i] for i, aa in enumerate(word)])
+    return sum([amino_acid_s_values.loc[aa.code, i-13] for i, aa in enumerate(word)])
+
+threshold = 0
+
+#A simple thresholding (to be tuned) is then enough to define a simple binary classifier.
+def is_cleavage_neighborhood(score):
+    return score > threshold
+
 
 #Lets test the function
-word = 'A'*(p+q-1)
+word = 'A'*(p+q)
 print(len(word))
 print(q_minus_1_score([AminoAcid(aa) for aa in word]))
-
-
-# Print the results
-print("Occurrences of each amino acid at every position relative to the cleavage site:")
-print(amino_acid_counts)
-print("\nObserved frequency of each amino acid at the relative position:")
-print(amino_acid_freqs)
-
-"""
-In a same way, by counting over the whole length of given sequences, 
-one can compute the observed general background frequency g(a) of amino acid a in the given set, 
-regardless of the position.
-"""
-
-
-print("\nGeneral background frequency of each amino acid:")
-print(general_background_frequency)
-
-
 
 
 
 #Here I'm saving my results in the result.txt file
 def save_results():
-    with open('results.txt', 'w') as file:
+    with open('results.txt', 'a') as file:
+        file.write("###     RESULTS :#####\n\n")
         file.write("Parameters of the model:\n")
         file.write("Data obtained from the EUKSIG_13.red file\n\n")
         file.write("p = 13    q = 2\n\n")
@@ -206,50 +204,11 @@ def save_results():
         file.write(amino_acid_freqs_str + "\n\n")
         file.write("General background frequency of each amino acid:\n")
         file.write(str(general_background_frequency) + "\n\n")
+        file.write("s value of each amino acid at every position:\n")
+        amino_acid_s_values_str = amino_acid_s_values.to_string()
+        file.write(amino_acid_s_values_str + "\n\n")
+        file.write("END OF RESULTS\n\n\n")
     
-
-
-
-
-
-# Define a threshold for the binary classifier
-threshold = 0
-
-"""
-# Classify each word as cleavage site or not based on the q-1 score
-df['Cleavage Site'] = q_minus_1_score > threshold
-"""
-
-
-
-"""
-print("Counts of each amino acid:")
-print(amino_acid_counts)
-print("\nObserved frequency of each amino acid at the relative position:")
-print(observed_frequency)
-print("\nLogarithm of the observed frequency:")
-print(log_observed_frequency)
-print("\nGeneral background frequency of each amino acid:")
-print(general_background_frequency)
-print("\nLogarithm of the general background frequency:")
-print(log_general_background_frequency)
-print("\nScore for each amino acid at every position:")
-print(score)
-print("\nq-1 score for each word:")
-print(q_minus_1_score)
-print("\nClassification result:")
-print(df[['Primary Structure', 'Cleavage Site']])
-"""
-
-
-"""
-AminoList = { }
-# Apply the function to each row in the DataFrame
-test = df['Distance from Cleavage Site'] = df.apply(lambda row: distance_from_cleavage_site(row['Primary Structure'], row['Annotation']), axis=1)
-
-# Now you can analyze the DataFrame to see which amino acid is closer to the cleavage site
-print("distance from cleavage site :\n")
-print(test)
-"""
+#save_results()
 
 
