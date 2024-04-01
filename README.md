@@ -8,3 +8,11 @@ For instance, the following sequence is the beginning of a protein, where the cl
 
 Then, for the purpose of this project, one will simply work on such sequences of letters. One has now to program some learning algorithms, to tune them, and to evaluate their performance. A simple statistical model, will be used first to establish a reference. One will then try to improve accuracy with some specific kernel functions for Support Vector Machines.
 
+
+Ce qu'il reste a faire
+tester le modele simple sur les neighboorhood de la base de données et verifier que l'algo les decrit bien comme tels
+On peut considerer une base de données plus grande en mixant les 4 dataframes (avec concatenate (pas dur)) -> meme pas besoin, le fichier sig_13 est deja la concatenation des 3 fichiers
+Attention peut etre un traitement necessaire comme pour le fichier 1
+
+On peut changer la taille considérée du neighboorhood et prendre la taille maximale que l'on a a disposition
+
