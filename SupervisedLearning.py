@@ -97,6 +97,8 @@ print(y_train)
 # Define the SVM classifier
 classifier = svm.SVC(kernel='rbf')
 
+#edouar suce mq bite
+
 
 """
 # Fit the classifier to the training data
