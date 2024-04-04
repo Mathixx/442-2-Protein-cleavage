@@ -33,7 +33,8 @@ class AminoAcid:
             self.name = self.properties[aa]['name']
             self.label = self.properties[aa]['label']
         else:
-            raise ValueError('Invalid amino acid code')
+            print('Invalid amino acid code', aa)
+            raise ValueError('Invalid amino acid code', aa)
 
     def __str__(self):
         """
