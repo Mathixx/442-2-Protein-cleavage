@@ -14,10 +14,10 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn import svm
 
-from aux import AminoAcid
+from auxFonctions import AminoAcid
 
 # Read data from a file into a list of entries
-with open('/Users/mathiasperez/Documents/GitHub/442-2-Protein-cleavage/data/EUKSIG_13.red', 'r') as file:
+with open('data/EUKSIG_13.red', 'r') as file:
     entries = file.read().split('\n   ')
 
 
