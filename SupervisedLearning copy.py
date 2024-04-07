@@ -83,9 +83,6 @@ Et inchallah on fait un SVM
 
 
 
-'''
-convert the annotation to a binary vector
-'''
 
 
 def convert_df_to_vectors(df):
@@ -116,21 +113,10 @@ def extract_random_subsequence(row, n):
 
 # Extract random subsequences of length n from the data
 df_random_subsequence = df_exploitable.apply(extract_random_subsequence, axis=1, n=n)
+print(type(df_random_subsequence['P_Structure_vector']))
 
-
+# Split the random subsequence data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(df_random_subsequence['P_Structure_vector'], df_random_subsequence['Annotation_vector'], test_size=0.2, random_state=42)
-print(X_train)
-
-# classifier = svm.SVC(kernel='rbf')
-# classifier.fit(X_train, y_train)
-# y_pred = classifier.predict(X_test)
-# accuracy = accuracy_score(y_test, y_pred)
-
-# print("Accuracy:", accuracy)
-
-# print(df_random_subsequence)
-# Split the data into training and testing sets
-# X_train, X_test, y_train, y_test = train_test_split(amino_acid_seq, cleavage_site_position, test_size=0.2, random_state=42)
 """
 test_size=0.2: This argument specifies the proportion of the dataset to include in the test split. 
 In this case, 20% of the data will be used for testing, and the remaining 80% will be used for training
@@ -140,11 +126,20 @@ Setting a specific seed (like 42 in this case) ensures that the output is reprod
 you'll get the same train/test split each time you run the code.
 """
 
+
+classifier = svm.SVC(kernel='rbf')
+classifier.fit(X_train, y_train)
+
+
+# print("Accuracy:", accuracy)
+
+
+
 # print(y_train)
 # # Define the SVM classifier
 # classifier = svm.SVC(kernel='rbf')
 
-# #edouar suce mq bite
+
 
 
 """
