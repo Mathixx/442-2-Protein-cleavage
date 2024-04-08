@@ -69,18 +69,30 @@ def extract_random_subsequence2(row, n:int, nb_letters:int=26):
     - n: the length of the subsequence
     - nb_letters: the number of letters in the alphabet
     ### Returns:
-    - a pandas series containing the subsequence of the primary structure, 
+    - a pandas series containing the subsequence of the primary structure
+    -There should be as much valid sequences as invalid sequences
     the subsequence of the annotation, the subsequence of the primary structure as a vector and 
     the position of the cleavage site in the subsequence
     '''
-    max_start_index = max(0, len(row['Primary Structure']) - n)  # Calculate the maximum possible start index
-    if max_start_index == 0:
-        start_index = 0  # if chain is too short, start at the beginning
-    else:
-        start_index = np.random.randint(0, max_start_index)  # Randomly select a start index
-    end_index = start_index + n  # Calculer l'indice de fin
+    bool_cleavage = False
+    random_double = np.random.random()
+    if random_double > 0.5:
+        bool_cleavage = True
 
-    neighborhood_check = True if (row['Cleavage_Site'] - start_index == 13) else False  # Define wheter the sequence if the right neighborhood of the cleavage site
+    if bool_cleavage:
+        start_index = row['Cleavage_Site'] - 13
+        end_index = start_index + n  #n = 13 + 2 = 15
+
+        neighborhood_check = True  # Define wheter the sequence if the right neighborhood of the cleavage site
+    else :
+        max_start_index = max(0, len(row['Primary Structure']) - n)  # Calculate the maximum possible start index
+        if max_start_index == 0:
+            start_index = 0  # if chain is too short, start at the beginning
+        else:
+            start_index = np.random.randint(0, max_start_index)  # Randomly select a start index
+        end_index = start_index + n  # Calculer l'indice de fin
+
+        neighborhood_check = True if (row['Cleavage_Site'] - start_index == 13) else False  # Define wheter the sequence if the right neighborhood of the cleavage site
     
     return pd.Series([row['Primary Structure'][start_index:end_index], row['P_Structure_vector'][start_index*nb_letters:end_index*nb_letters], neighborhood_check], index=['Primary Structure', 'P_Structure_vector', 'Neighborhood_bool'])
 
@@ -135,12 +147,15 @@ def find_cleavage2(X, svm_model_neighbor,n,  nb_letters = 26):
         if svm_model_neighbor.predict([test_sub]):
             containing = True
             position = i//nb_letters+13
-            break
-    if containing:
-        return position
-    return np.nan
+            return True
+    return False
 
-
+def is_neighborhood2(X, svm_model_neighbor,n,  nb_letters = 26):
+    
+    X = word_to_vector(X)
+    if svm_model_neighbor.predict([X]):
+        return True
+    return False
 
 
 def create_model2(n, df_exploitable, kernel_neighbor, C_nei, random_state=42, nb_letters = 26):
