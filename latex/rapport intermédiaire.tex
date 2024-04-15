@@ -1,0 +1,101 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{url,csquotes}
+\usepackage[hidelinks,hyperfootnotes=false]{hyperref}
+\usepackage[notitlepage,fancysections,pagenumber,,sectionmark]{polytechnique}
+\usepackage[section]{placeins}%forcer le positionnement des images
+
+%python
+\usepackage{xcolor}\usepackage{listings}\lstset{literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 
+{ó}{{\'o}}1 {ú}{{\'u}}1{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1{à}{{\`a}}1 
+{è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1{À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 
+{Ù}{{\`U}}1{ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1{Ä}{{\"A}}1 {Ë}{{\"E}}1 
+{Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1{â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1{Â}{{\^A}}1 
+{Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1{œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 
+{ß}{{\ss}}1{ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1{ç}{{\c c}}1 {Ç}{{\c C}}1 
+{ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1{€}{{\EUR}}1 {£}{{\pounds}}1}
+
+\lstdefinestyle{stylepython}
+{        language=Python,        basicstyle=\ttfamily,    commentstyle=\color{olive},    keywordstyle=\color{blue},    stringstyle=\color{olive}}
+
+
+
+
+\title{Intermediate report}
+\subtitle{Protein Cleavage Prediction}
+\author{Mathias Perez, Edouard Rabasse}
+
+\date{15 april 2024}
+\begin{document}
+\maketitle
+
+Our goal is to predict the cleavage of proteins. We have a dataset of proteins and their cleavage sites. 
+We will use a classification kernel to predict if a chain of amino acids contains a cleavage site and where. 
+We will use a dataset of proteins and their cleavage sites to train our model.
+We chose to use python to process the data and train the model.
+
+\section*{First look at the dataset}  
+We have a dataset of proteins and their cleavage sites. 
+Each protein is repsented over 3 lines: 
+\begin{itemize}
+    \item the first line contains some informations on the protein (not relevant to our study),
+    \item the second line is the sequence of amino acids,
+    \item the third line is the position of the cleavage site.
+\end{itemize}
+
+\subsection*{Preprocessing}
+We first had to check the data (add missing spaces...).
+We then preprocessed the data to extract the amino acid sequence and the cleavage site. 
+We first convert the amino acid sequence to a vector of integers using a one-hot encoding as suggested.
+
+% \begin{lstlisting}[style=stylepython]
+   
+
+% \end{lstlisting}
+\section*{Simple Statistical approach}
+For the whole dataset, we calculated the frequency of each amino acid at each position (relative to the cleavage site).
+We were able to determine the q-1 score of a sequence $a_0 a_1 ... a_{p+q}$ defined as 
+$q-1 = \sum_{i=-p}^{q-1} \log(f(a_{i+p})) - \log (g(a_{i+p}))$ 
+where $f(a,i) $ is the frequency of the amino acid a at position i (relative to the cleavage site)
+and $g(a)$ is the frequency of the amino acid a in the whole dataset.
+
+For example, the most common amino acid over the whole set is L (leucine) and the most common amino acid at position 0 (relative to the cleavage) is A (alanine) with a frequency of 0.21
+
+Our goal with this Statistical approach is to find the best parameters p and q and a threshold to predict if a sequence of length p+q contains a cleavage site at position p.
+We will then use a sliding window to predict the cleavage site of a protein.
+
+\section*{SVM Kernel approach}
+We use the scikit-learn library to train our model.
+To classify the data, we will use  two SVM kernel. 
+The first model should be able, for a given sequence of amino acids, to predict if it contains a cleavage site.
+To get training data for the first model, we will use a sliding window of size n to extract 
+sequences of amino acids and their label: contains a cleavage site or not.
+
+
+
+The second model should be able to predict the position of the cleavage site in a sequence of size n of amino acids that contains one.
+To get training data for the second model, we will take sequences of 
+size n amino acids that contain a cleavage site and extract the position of the cleavage site.
+
+Then we combine the two models to predict if a chain of amino acids contains a cleavage site and where 
+by using a sliding window of size n. 
+
+\subsection*{Next steps}
+We need to choose the right parameters for the SVM kernels and the sliding window.
+We might as well want to improve our batching process.
+
+\section*{Conclusion}
+We have preprocessed the data and are now able to train our model.
+We have started to implement a simple statistical approach to predict the cleavage site of a protein.
+We have also started to implement a SVM kernel to predict the cleavage site of a protein.
+We will now focus on training our model and improving our predictions.
+
+
+
+
+
+
+\end{document}
