@@ -213,10 +213,3 @@ def test_models(n, df_exploitable, svm_model_in, svm_model_pos, random_state=42,
     accuracy_pos = accuracy_score(pos_test[in_test==1], pos_pred)
     return accuracy_in, accuracy_pos
 
-def create_model_pq(df, kernel = 'linear', C = 1, p = 2, q = 13, random_state = 42):
-    
-    X_train, X_test, pos_train, pos_test = test_train_split_random_pos(df, p+q, random_state=random_state)
-    pos_train = [pos_train[p]==1]
-    pos_test = [pos_test[p]==1]
-    svm_model = svm.SVC(kernel=kernel, C=C, random_state=random_state)
-
