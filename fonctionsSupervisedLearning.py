@@ -212,3 +212,4 @@ def test_models(n, df_exploitable, svm_model_in, svm_model_pos, random_state=42,
     pos_pred = svm_model_pos.predict(X_test[in_test==1])
     accuracy_pos = accuracy_score(pos_test[in_test==1], pos_pred)
     return accuracy_in, accuracy_pos
+
