@@ -1,7 +1,7 @@
 
 import pandas as pd
 import math
-from aux import AminoAcid
+from auxFonctions import AminoAcid
 
 # Read data from a file into a list of entries
 with open('/Users/mathiasperez/Documents/GitHub/442-2-Protein-cleavage/data/EUKSIG_13.red', 'r') as file:
@@ -53,12 +53,15 @@ amino_acid_seqBis = df['Primary Structure'].apply(lambda x: list(x))
 amino_acid_seq = amino_acid_seq.apply(lambda x: [AminoAcid(aa) for aa in x])
 
 #Parametres de l'étude
-p_opt, q_opt = 1, 1
+p_opt_dev, q_opt_dev = 1, 1
+p_opt_fp, q_opt_fp  = 1,1
 std_dev_min = 1000
-for p in range(1, 14):
-    for q in range(1, 30):
-        #print("p = ", p, "    q = ", q)
-        #print("\n")
+false_negatives_min = 1408
+threshold_opti = 0
+for p in range(2, 14):
+    for q in range(1, 10):
+        print("p = ", p, "    q = ", q)
+        print("\n")
 
         # Create a DataFrame to store, for each primary structure, the neihborhood of the cleavage site
         # The neighborhood is defined as the word of length p+q starting p letters before the cleavage site
@@ -129,17 +132,31 @@ for p in range(1, 14):
         """
 
         std_dev = correct_neigboorhood_score.std()
+        threshold = correct_neigboorhood_score.mean() - 2*std_dev
+        false_negatives = correct_neigboorhood_score[correct_neigboorhood_score < threshold].count()
         if std_dev < std_dev_min:
             std_dev_min = std_dev
-            p_opt = p
-            q_opt = q
+            p_opt_dev = p
+            q_opt_dev = q
+        if false_negatives < false_negatives_min :
+            false_negatives_min = false_negatives
+            p_opt_fp = p
+            q_opt_fp = q
+            threshold_opti = threshold
+
+
         
-print("Optimal values of p and q:")
-print("p = ", p_opt, "    q = ", q_opt)
+print("Optimal values of p and q for the deviation:")
+print("p = ", p_opt_dev, "    q = ", q_opt_dev)
 print("\n")
 print("Standard deviation of the score of the correct neighborhoods:")
 print(std_dev_min)
-
+print("Optimal values of p and q for the minimal amount of false positives:")
+print("p = ", p_opt_fp, "    q = ", q_opt_fp)
+print("\n")
+print("Minimal amount of false_negatives:")
+print(false_negatives_min)
+print(threshold_opti)
         
 
 
