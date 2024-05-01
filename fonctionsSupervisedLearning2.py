@@ -150,7 +150,7 @@ def find_cleavage2(X, svm_model_neighbor,n,  nb_letters = 26):
             return True
     return False
 
-def is_neighborhood2(X, svm_model_neighbor,n,  nb_letters = 26):
+def is_neighborhood2(X, svm_model_neighbor,  nb_letters = 26):
     
     X = word_to_vector(X)
     if svm_model_neighbor.predict([X]):
