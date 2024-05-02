@@ -16,3 +16,28 @@ Attention peut etre un traitement necessaire comme pour le fichier 1
 
 On peut changer la taille considérée du neighboorhood et prendre la taille maximale que l'on a a disposition
 
+
+
+A FAIRE : 
+-Coder subsitution Matrix (2 formes) et adapter le code de la Kernel RBF -> comment changer le produit d'une RBF
+- S'assurer que le produit de base et le produit scalaire simple -> sinon le coder et refit le modele
+
+- 
+
+pip install biopython
+
+from Bio.Align import substitution_matrices
+
+# Load the PAM250 matrix
+pam250 = substitution_matrices.load("PAM250")
+
+# Access scores directly
+score_AR = pam250[('A', 'R')]
+print("Score for A and R:", score_AR)
+
+score_AA = pam250[('A', 'A')]
+print("Score for A and A:", score_AA)
+
+
+-debuggeer probabilistic kernel
+    -2 methodes pour le faire 
