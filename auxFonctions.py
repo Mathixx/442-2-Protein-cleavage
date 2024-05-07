@@ -20,8 +20,7 @@ class AminoAcid:
         'T': {'name': 'Threonine', 'label': 17, 'code' : 'T'},
         'V': {'name': 'Valine', 'label': 18, 'code' : 'V'},
         'W': {'name': 'Tryptophan', 'label': 19, 'code' : 'W'},
-        'Y': {'name': 'Tyrosine', 'label': 20, 'code' : 'Y'},
-        '*': {'name': 'Stop', 'label': 0, 'code' : '*'}
+        'Y': {'name': 'Tyrosine', 'label': 20, 'code' : 'Y'}
     }
 
     def __init__(self, aa):
