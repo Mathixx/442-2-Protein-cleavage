@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# ## Import necessarry dependencies
-
-# In[2]:
-
 
 import pandas as pd
 import math
@@ -153,7 +146,7 @@ def q_minus_1_score(word):
 
 #A REDEFINIR EN FONCTION DES RESULTATS OBTENUS
 threshold = 1.5
-print(threshold)
+# print(threshold)
 
 #A simple thresholding (to be tuned) is then enough to define a simple binary classifier.
 def is_cleavage_neighborhood(score):
@@ -222,8 +215,10 @@ def LogKernel(x : str, y : str) :
     '''
     sum = 0
     for i in range(-p, q) :
-        sum += Phi(x[p+i], y[p+i], i)
-        #print("Sum :"+ str(sum))
+        if p+i < len(x) and p+i < len(y):
+            sum += Phi(x[p+i], y[p+i], i)
+        #print("Sum :"+ str(sum))*
+        
     return sum
 
 """
@@ -264,11 +259,6 @@ def ProbabilisticKernel(X, Y):
             gram_matrix[i, j] = ProbKernel(x, y)
 
     return gram_matrix
-
-
-# In[11]:
-
-
 
 
 
@@ -416,7 +406,7 @@ def extract_random_subseq(row, n:int, nb_letters:int=26):
         end_index = start_index + n  # Calculer l'indice de fin
 
         neighborhood_check = 1 if (row['Cleavage_Site'] - start_index == 13) else 0  # Define wheter the sequence if the right neighborhood of the cleavage site
-    
+        
     return pd.Series([row['Primary Structure'][start_index:end_index], row['P_Structure_vector'][start_index*nb_letters:end_index*nb_letters], neighborhood_check], index=['Primary Structure', 'P_Structure_vector', 'Neighborhood_bool'])
 
 
@@ -439,6 +429,7 @@ def test_train_split_random_pos_proba(df, n ,test_size=0.2, random_state=42):
     '''
     df_random = df.apply(extract_random_subseq, axis=1, n=n)
     X = np.array(df_random['P_Structure_vector'].tolist())
+    
     y = np.array(df_random['Neighborhood_bool'].tolist())   
 
     X_train, X_test, bool_train, bool_test = train_test_split(X, y, test_size=test_size, random_state=random_state)

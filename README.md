@@ -16,3 +16,6 @@ Attention peut etre un traitement necessaire comme pour le fichier 1
 
 On peut changer la taille considérée du neighboorhood et prendre la taille maximale que l'on a a disposition
 
+## 
+Using processdata.ipynb to extract the dataframe
+Using tuneParameters to tune the hyperparameters.
