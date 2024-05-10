@@ -61,7 +61,7 @@ def convert_df_to_vectors2(df):
     return df_exploitable
 
 
-def extract_random_subsequence2(row, n:int, nb_letters:int=26):
+def extract_random_subsequence2(row, n = 15, p = 13,  nb_letters:int=26):
     '''
     Extract a random subsequence of length n from the primary structure and the annotation
     ### Parameters:
@@ -80,10 +80,10 @@ def extract_random_subsequence2(row, n:int, nb_letters:int=26):
         bool_cleavage = True
 
     if bool_cleavage:
-        start_index = row['Cleavage_Site'] - 13
+        start_index = row['Cleavage_Site'] - p
         end_index = start_index + n  #n = 13 + 2 = 15
 
-        neighborhood_check = True  # Define wheter the sequence if the right neighborhood of the cleavage site
+        neighborhood_check = 1  # Define wheter the sequence if the right neighborhood of the cleavage site
     else :
         max_start_index = max(0, len(row['Primary Structure']) - n)  # Calculate the maximum possible start index
         if max_start_index == 0:
@@ -92,12 +92,12 @@ def extract_random_subsequence2(row, n:int, nb_letters:int=26):
             start_index = np.random.randint(0, max_start_index)  # Randomly select a start index
         end_index = start_index + n  # Calculer l'indice de fin
 
-        neighborhood_check = True if (row['Cleavage_Site'] - start_index == 13) else False  # Define wheter the sequence if the right neighborhood of the cleavage site
+        neighborhood_check = 1 if (row['Cleavage_Site'] - start_index == p) else 0  # Define wheter the sequence if the right neighborhood of the cleavage site
     
     return pd.Series([row['Primary Structure'][start_index:end_index], row['P_Structure_vector'][start_index*nb_letters:end_index*nb_letters], neighborhood_check], index=['Primary Structure', 'P_Structure_vector', 'Neighborhood_bool'])
 
 
-def test_train_split_random_pos2(df, n ,test_size=0.2, random_state=42):
+def test_train_split_random_pos2(df, n , p,test_size=0.2, random_state=42):
     '''
     Split the data into training and testing sets
     ### Parameters:
@@ -112,7 +112,7 @@ def test_train_split_random_pos2(df, n ,test_size=0.2, random_state=42):
     - pos_test: the position of the cleavage site in the testing set
     '''
     
-    df_random = df.apply(extract_random_subsequence2, axis=1, n=n)
+    df_random = df.apply(extract_random_subsequence2, axis=1, n=n, p = p)
     X = np.array(df_random['P_Structure_vector'].tolist())
     y = np.array(df_random['Neighborhood_bool'].tolist())
     X_train, X_test, bool_train, bool_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
@@ -158,7 +158,7 @@ def is_neighborhood2(X, svm_model_neighbor,  nb_letters = 26):
     return False
 
 
-def create_model2(n, df_exploitable, kernel_neighbor, C_nei, random_state=42, nb_letters = 26):
+def create_model2(n, p, df_exploitable, kernel_neighbor, C_nei, random_state=42, nb_letters = 26):
     '''
     Create a model that predicts the position of the cleavage site in a primary structure
     ### Parameters:
@@ -173,7 +173,7 @@ def create_model2(n, df_exploitable, kernel_neighbor, C_nei, random_state=42, nb
     - accuracy_in: the accuracy of the model that predicts if the subsequence is a neighborhood of the cleavage site
 
     '''
-    X_train, X_test, bool_train, bool_test = test_train_split_random_pos2(df_exploitable, n, random_state=random_state)
+    X_train, X_test, bool_train, bool_test = test_train_split_random_pos2(df_exploitable, n,p, random_state=random_state)
     #in_train = ~np.isnan(bool_train)
     #in_test = ~np.isnan(bool_test)
     svm_model_neighbor = svm.SVC(kernel=kernel_neighbor, C=C_nei, random_state=random_state)

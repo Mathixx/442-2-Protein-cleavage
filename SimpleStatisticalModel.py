@@ -2,9 +2,10 @@
 import pandas as pd
 import math
 from auxFonctions import AminoAcid
+import numpy as np
 
 # Read data from a file into a list of entries
-with open('/Users/mathiasperez/Documents/GitHub/442-2-Protein-cleavage/data/EUKSIG_13.red', 'r') as file:
+with open('data/SIG_13.red', 'r') as file:
     entries = file.read().split('\n   ')
 
 
@@ -53,11 +54,9 @@ amino_acid_seqBis = df['Primary Structure'].apply(lambda x: list(x))
 amino_acid_seq = amino_acid_seq.apply(lambda x: [AminoAcid(aa) for aa in x])
 
 #Parametres de l'étude
-p_opt_dev, q_opt_dev = 1, 1
-p_opt_fp, q_opt_fp  = 1,1
-std_dev_min = 1000
-false_negatives_min = 1408
-threshold_opti = 0
+p_opt, q_opt = 1, 1
+fn_min = 1408
+fp_min = 1408
 for p in range(2, 14):
     for q in range(1, 10):
         print("p = ", p, "    q = ", q)
@@ -68,6 +67,15 @@ for p in range(2, 14):
         correct_neighborhood = pd.Series()
         for i, seq in amino_acid_seqBis.items():
                 correct_neighborhood[i] = ''.join(seq[cleavage_site_position[i]-p:cleavage_site_position[i]+q])
+
+        incorrect_neighborhood = pd.Series()
+        decalage  = [3,4,5,-3,-4, -5]
+        for i, seq in amino_acid_seqBis.items():
+            dec = np.random.choice(decalage)
+            dec = 0 if cleavage_site_position[i]-13 - dec < 0 else dec
+            incorrect_neighborhood[i] = ''.join(seq[cleavage_site_position[i]-p-dec:cleavage_site_position[i]+q-dec])
+
+        
 
         # Create a DataFrame to store the counts of each amino acid at every position relative to the cleavage site
         #the cleavage site is between to aminoacids, so cleavage_site_position is the position of the first amino acid after the cleavge site
@@ -113,50 +121,71 @@ for p in range(2, 14):
         # To obtain the score of the correct neighborhoods, we apply the q-1 score function to each neighborhood
         #correct_neighborhood = correct_neighborhood.apply(lambda x: [AminoAcid(aa) for aa in x])
         correct_neigboorhood_score = correct_neighborhood.apply(q_minus_1_score)
+        incorrect_neighborhood_score = incorrect_neighborhood.apply(q_minus_1_score)
 
-        """
-        print("Score of the correct neighborhoods:")
-        print(correct_neigboorhood_score)
-        print("\n")
-
-        print("Mean score of the correct neighborhoods:")
-        print(correct_neigboorhood_score.mean())
-        print("\n")
-
-        print("Standard deviation of the score of the correct neighborhoods:")
-        print(correct_neigboorhood_score.std())
-
-        print("Min and max values of the correct neighboorhoods score :")
-        print(correct_neigboorhood_score.min())
-        print(correct_neigboorhood_score.max())
-        """
-
+        correct_mean = correct_neigboorhood_score.mean()
         std_dev = correct_neigboorhood_score.std()
-        threshold = correct_neigboorhood_score.mean() - 2*std_dev
-        false_negatives = correct_neigboorhood_score[correct_neigboorhood_score < threshold].count()
-        if std_dev < std_dev_min:
-            std_dev_min = std_dev
-            p_opt_dev = p
-            q_opt_dev = q
-        if false_negatives < false_negatives_min :
-            false_negatives_min = false_negatives
-            p_opt_fp = p
-            q_opt_fp = q
-            threshold_opti = threshold
+      
+        incorrect_mean = incorrect_neighborhood_score.mean()
+        std_dev_incorrect = incorrect_neighborhood_score.std()
+
+        threshold_opti = (correct_neigboorhood_score.mean() - std_dev/math.sqrt(0.9) + incorrect_neighborhood_score.mean() + std_dev_incorrect/math.sqrt(0.9))/2
+
+
+        false_negatives = correct_neigboorhood_score[correct_neigboorhood_score < threshold_opti].count()
+        false_positives = incorrect_neighborhood_score[incorrect_neighborhood_score > threshold_opti].count()
+
+
+        with open('results.txt', 'a') as file:
+            file.write("###     RESULTS :#####\n\n")
+            file.write("Parameters of the model:\n")
+            file.write("p ="+str(p)+ " q = "+str(q)+"\n")
+
+            file.write("Mean score of the correct neighborhoods:\n")
+            file.write(str(correct_neigboorhood_score.mean()) + "\n\n")
+            # file.write("Standard deviation of the score of the correct neighborhoods:\n")
+            # file.write(str(correct_neigboorhood_score.std()) + "\n\n")
+            file.write("Threshold for the correct neighborhoods:\n")
+            file.write(str(correct_neigboorhood_score.mean() - std_dev/math.sqrt(0.9))+"\n")
+            # file.write("Min and max values of the correct neighboorhoods score :\n")
+            # file.write(str(correct_neigboorhood_score.min()) + "\n")
+            # file.write(str(correct_neigboorhood_score.max()) + "\n\n")
+
+            file.write("Mean score of the incorrect neighborhoods:\n")
+            file.write(str(incorrect_neighborhood_score.mean()) + "\n\n")
+            # file.write("Standard deviation of the score of the incorrect neighborhoods:\n")
+            # file.write(str(incorrect_neighborhood_score.std()) + "\n\n")
+            file.write("Threshold for the incorrect neighborhoods:\n")
+            file.write(str(incorrect_neighborhood_score.mean() + std_dev_incorrect/math.sqrt(0.9)) + "\n\n")
+            # file.write("Min and max values of the incorrect neighboorhoods score :\n")
+            # file.write(str(incorrect_neighborhood_score.min()) + "\n")
+            # file.write(str(incorrect_neighborhood_score.max()) + "\n\n")
+
+            file.write("Optimal threshold for the deviation:\n")
+            file.write(str(threshold_opti) + "\n\n")
+
+            file.write("False negatives:\n")
+            file.write(str(false_negatives) + "\n")
+            file.write("False positives:\n")
+            file.write(str(false_positives) + "\n")
+            
+            file.write("END OF RESULTS\n\n\n")
+
+        if false_negatives + false_positives < fn_min + fp_min:
+            fn_min = false_negatives
+            fp_min = false_positives
+            p_opt = p
+            q_opt = q
 
 
         
 print("Optimal values of p and q for the deviation:")
-print("p = ", p_opt_dev, "    q = ", q_opt_dev)
-print("\n")
-print("Standard deviation of the score of the correct neighborhoods:")
-print(std_dev_min)
-print("Optimal values of p and q for the minimal amount of false positives:")
-print("p = ", p_opt_fp, "    q = ", q_opt_fp)
+print("p = ", p_opt, "    q = ", q_opt)
 print("\n")
 print("Minimal amount of false_negatives:")
-print(false_negatives_min)
-print(threshold_opti)
+print(fn_min)
+print("Minimal amount of false_positives:")
+print(fp_min)
         
 
 
