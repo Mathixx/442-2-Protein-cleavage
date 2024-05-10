@@ -213,11 +213,10 @@ def LogKernel(x : str, y : str) :
     ### Returns:
     - La valeur de la fonction LogKernel(x,y)
     '''
-    sum = 0
-    for i in range(-p, q) :
-        if p+i < len(x) and p+i < len(y):
-            sum += Phi(x[p+i], y[p+i], i)
-        #print("Sum :"+ str(sum))*
+    assert (p+q<=len(x) & p+q <= len(y))
+    scores = np.array([Phi(x_s, y_s,i) for x_s, y_s, i in zip(x[0:p+q], y[0:p+q],[j for j in range(-p,q)])])
+    sum = np.sum(scores)
+        
         
     return sum
 
@@ -236,27 +235,51 @@ def ProbalisticKernel(X, Y):
     return gram_matrix
 """
 
-def ProbKernel(x, y):
-    X_str = fsl2.vector_to_word(x)
-    Y_str = fsl2.vector_to_word(y)
+def ProbKernel(X_str,Y_str):
     '''
     Fonction servant de base a la Kernel probabiliste
     ### Parameters:
-    - x : une sequence d'acides aminés converti au prealable en vecteur de taille (p+q)*26 composé de 0 et 1
-    - y : une sequence d'acides aminés converti au prealable en vecteur de taille (p+q)*26 composé de 0 et 1
+    - x : une sequence d'acides aminés converti en string
+    - y : une sequence d'acides aminés converti en string
     ### Returns:
     - La valeur de la fonction Kernel(x,y)
     '''
     return math.exp(LogKernel(X_str, Y_str))
 
+from joblib import Parallel, delayed
 def ProbabilisticKernel(X, Y):
     # Initialize an empty matrix to store the kernel values
-    gram_matrix = np.zeros((X.shape[0], Y.shape[0]))
 
-    # Calculate the kernel value for each pair of samples
-    for i, x in enumerate(X):
-        for j, y in enumerate(Y):
-            gram_matrix[i, j] = ProbKernel(x, y)
+    # gram_matrix = np.zeros((X.shape[0], Y.shape[0]))
+
+    # # Calculate the kernel value for each pair of samples
+    # for i, x in enumerate(X):
+    #     for j, y in enumerate(Y):
+    #         gram_matrix[i, j] = ProbKernel(x, y)
+
+    # return gram_matrix
+    # Precompute all conversions from vectors to words if possible
+    X_str = [fsl2.vector_to_word(x) for x in X]
+    Y_str = [fsl2.vector_to_word(y) for y in Y]
+
+    # Initialize an empty matrix to store the kernel values
+    n_samples_X, n_samples_Y = len(X_str), len(Y_str)
+    gram_matrix = np.zeros((n_samples_X, n_samples_Y))
+
+    # Calculate the kernel value for each pair of samples using parallel processing
+    def compute_kernel(i, j):
+        return ProbKernel(X_str[i], Y_str[j])
+
+    # Using joblib's Parallel and delayed to parallelize the loop
+    results = Parallel(n_jobs=-1)(
+        delayed(compute_kernel)(i, j) for i in range(n_samples_X) for j in range(n_samples_Y)
+    )
+
+    # Fill the gram matrix with results
+    for idx, value in enumerate(results):
+        i = idx // n_samples_Y
+        j = idx % n_samples_Y
+        gram_matrix[i, j] = value
 
     return gram_matrix
 
@@ -281,9 +304,8 @@ def SimilarityPAM(x : str, y : str) :
     ### Returns:
     - La valeur de la fonction Similarity(x,y)
     '''
-    sum = 0
-    for i in range(-p, q) :
-        sum += pam250[(x[p+i], y[p+i])]
+    scores = np.array([pam250[amino_acid1, amino_acid2] for amino_acid1, amino_acid2 in zip(x[0:p+q], y[0:p+q])])
+    sum = np.sum(scores)
     return sum
 
 def SimilarityBLOSUM(x : str, y : str) :
@@ -295,10 +317,13 @@ def SimilarityBLOSUM(x : str, y : str) :
     ### Returns:
     - La valeur de la fonction Similarity(x,y)
     '''
-    sum = 0
-    for i in range(-p, q) :
-        sum += blosum62[x[p+i], y[p+i]]
+    scores = np.array([blosum62[amino_acid1, amino_acid2] for amino_acid1, amino_acid2 in zip(x[0:p+q], y[0:p+q])])
+    sum = np.sum(scores)
     return sum
+
+
+ 
+    
 
 def RBF_similarity(x : str, y : str, sigma = 1, SUBSTITUTION_MATRIX = "PAM") :
     '''

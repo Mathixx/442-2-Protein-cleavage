@@ -128,7 +128,7 @@ def test_train_split_random_pos2(df, n ,test_size=0.2, random_state=42):
     return X_train, X_test, bool_train, bool_test
 
 
-def find_cleavage2(X, svm_model_neighbor,n,  nb_letters = 26):
+def find_cleavage2(X, svm_model_neighbor,n,  nb_letters = 26,):
     '''
     find the position of the cleavage site in the primary structure using two SVM models
     /!\ the models must be trained before using this function with the same n and nb_letters as the ones used in this function
