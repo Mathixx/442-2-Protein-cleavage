@@ -17,3 +17,5 @@ data/GRAM+SIG_13.red
 data/SIG_13.red
 __pycache__/auxFonctions.cpython-312.pyc
 ROC/
+
+latex/

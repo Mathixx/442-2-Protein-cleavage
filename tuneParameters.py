@@ -61,8 +61,8 @@ def run_svm_analysis():
        # Define parameter grid
     param_grid = {
         'C': [0.01,0.05,0.1,0.5,1,5],  # Example C values
-        'kernel': ['rbf'],  # Example kernels
-        # 'kernel' : [fk.RBF_kernelBLOSUM, fk.RBF_kernelPAM, 'rbf']
+        # 'kernel': ['rbf'],  # Example kernels
+        'kernel' : [fk.RBF_kernelBLOSUM, fk.RBF_kernelPAM, 'rbf']
     }
 
     # Setup the SVM classifier with GridSearchCV
@@ -98,7 +98,7 @@ def run_svm_analysis():
     plt.close()
 
     # Save the best model
-    joblib.dump(best_model, 'best_svm_model_accuracy2.pkl')
+    joblib.dump(best_model, 'data/models/best_svm_model_accuracy2.pkl')
     print(f"Best Model Saved with AUC: {roc_auc}, Time to Run: {end - start}s")
     with open("data/accuracy.txt", "w") as f:
         f.write(f"Best Model Saved with AUC: {roc_auc}, Time to Run: {end - start}s")
