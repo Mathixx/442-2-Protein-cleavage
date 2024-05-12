@@ -222,15 +222,13 @@ def test_models(n, df_exploitable, svm_model_in, svm_model_pos, random_state=42,
 def find_cleavage2(X, model, p=13, q = 2, nb_letters = 26):
     n = p+q
     positions = []
-    print(X.shape[1])
-    for i in range(0, X.shape[1]- n*nb_letters, nb_letters):
+    for i in range(0, len(X)- n*nb_letters, nb_letters):
         test_sub = X[i:i + n*nb_letters]
-        print ( "prediction" , i//26, " ",model.predict(test_sub))
         
-        if model.predict(test_sub):
+        if model.predict(np.array([test_sub])):
             position = p+i//26
             positions.append(position)
     return positions
-        
+
         
     

@@ -204,7 +204,7 @@ def Phi(x : chr, y : chr, i : int) :
     else :
         return ( amino_acid_s_values.loc[x, i] + amino_acid_s_values.loc[y, i] )
 
-def LogKernel(x : str, y : str) :
+def LogKernel(x : str, y : str, p=13, q=2) :
     '''
     Fonction servant de base a la Kernel probabiliste
     ### Parameters:
@@ -295,7 +295,7 @@ blosum62 = substitution_matrices.load("BLOSUM62")
 
 
 #Fonction indiquant la similarité entre deux sequences d'acides aminés
-def SimilarityPAM(x : str, y : str) :
+def SimilarityPAM(x : str, y : str,p=13,q=2) :
     '''
     Fonction servant de base a la Kernel probabiliste
     ### Parameters:
@@ -308,7 +308,7 @@ def SimilarityPAM(x : str, y : str) :
     sum = np.sum(scores)
     return sum
 
-def SimilarityBLOSUM(x : str, y : str) :
+def SimilarityBLOSUM(x : str, y : str,p=13,q=2) :
     '''
     Fonction servant de base a la Kernel probabiliste
     ### Parameters:
@@ -339,7 +339,8 @@ def RBF_similarity(x : str, y : str, sigma = 1, SUBSTITUTION_MATRIX = "PAM") :
         Similarity = SimilarityPAM
     elif (SUBSTITUTION_MATRIX == "BLOSUM") :
         Similarity = SimilarityBLOSUM
-    return math.exp(-Similarity(x, y) / (2 * sigma**2))
+    norm = Similarity(x, x) + Similarity(y, y) - 2 * Similarity(x, y)
+    return math.exp(-norm / (2 * sigma**2))
 
 def RBF_kernelPAM(X, Y) :
     '''

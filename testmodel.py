@@ -4,11 +4,7 @@ from auxFonctions import AminoAcid
 import fonctionsSupervisedLearning2 as fsl2
 import fonctionsSupervisedLearning1 as fsl1
 
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn import datasets
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.model_selection import GridSearchCV
-import time
+
 # import thundersvm as tsvm
 
 import numpy as np
@@ -24,33 +20,43 @@ import fonctionskernel as fk
 
 
 # open model
-model = joblib.load("best_svm_model.pkl")
+model = joblib.load("best_svm_model_accuracy.pkl")
 
 # open data
 data = pd.read_csv("data/df.csv")
 data = fsl2.convert_df_to_vectors2(data)
 
-X = data['P_Structure_vector'][1]
-X = np.array(X)
-print(X)
-print(len(X))
-X = X.reshape(1,-1)
-print(X)
-pos = data['Cleavage_Site'][1]
+
+X = data['P_Structure_vector']
+# X = np.array(X)
+
+# X = X.reshape(1,-1)
+
+pos = data['Cleavage_Site']
 
 # predict
 def main():
-    print(fsl1.find_cleavage2(X, model))
-    print(pos)
+    # find the cleavage for the whole dataset
+    predictions = [fsl1.find_cleavage2(x, model) for x in X]
+    
+    # number of correct predictions
+    correct = 0
+    for i in range(len(predictions)):
+        if pos[i] in predictions[i]:
+            correct += 1
+    
+    #average accuracy
+    accuracy = correct/len(predictions)
 
-def test(x,y):
-    return fk.SimilarityBLOSUM(x,y)
+    #average number of predictions:
+    avg_pred = sum([len(x) for x in predictions])/len(predictions)
+    print("Average accuracy: ", accuracy)
+    print("Average number of predictions: ", avg_pred)
 
-x = "ABDEDHETDGEHDGDDD"
-y = "DGEHDGEDGSHDGEDDD"
+
+
 
 if __name__ == "__main__":
-    # main()
-    test(x,y)
-    # print(x[0])
+    main()
+    
 
