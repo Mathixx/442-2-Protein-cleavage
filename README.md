@@ -41,3 +41,31 @@ print("Score for A and A:", score_AA)
 
 -debuggeer probabilistic kernel
     -2 methodes pour le faire 
+
+
+# Protein Cleavage Site Prediction
+
+This project aims to predict the position of cleavage sites in protein sequences. The sequences of amino acids, starting from the N-terminal side, are used to represent proteins. Each amino acid is denoted by a letter code, with most uppercase letters used in this encoding. 
+
+## Project Overview
+
+The project begins with a simple statistical model to establish a reference. We then aim to improve accuracy using specific kernel functions for Support Vector Machines (SVMs).
+
+## Data
+
+The data used in this project consists of sequences of amino acids. An example of a protein sequence is shown below, where the cleavage site is marked as the bond between the two underlined AR amino acids:
+
+
+## Installation
+
+To run the code in this project, you need to have Python installed on your machine. You can then install the required libraries using pip:
+
+
+## Usage
+
+The main functions in this project are contained in the `fonctionsSupervisedLearning2.py` file. These include functions for creating the SVM model, splitting the data into training and testing sets, and calculating the kernel function.
+
+To use these functions, you can import them into your Python script as follows:
+
+```python
+from fonctionsSupervisedLearning2 import create_model2, test_train_split_random_pos2
