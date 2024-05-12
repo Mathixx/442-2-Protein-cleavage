@@ -59,8 +59,8 @@ fn_min = 1408
 fp_min = 1408
 for p in range(2, 14):
     for q in range(1, 10):
-        print("p = ", p, "    q = ", q)
-        print("\n")
+        # print("p = ", p, "    q = ", q)
+        # print("\n")
 
         # Create a DataFrame to store, for each primary structure, the neihborhood of the cleavage site
         # The neighborhood is defined as the word of length p+q starting p letters before the cleavage site
@@ -135,41 +135,6 @@ for p in range(2, 14):
         false_negatives = correct_neigboorhood_score[correct_neigboorhood_score < threshold_opti].count()
         false_positives = incorrect_neighborhood_score[incorrect_neighborhood_score > threshold_opti].count()
 
-
-        with open('results.txt', 'a') as file:
-            file.write("###     RESULTS :#####\n\n")
-            file.write("Parameters of the model:\n")
-            file.write("p ="+str(p)+ " q = "+str(q)+"\n")
-
-            file.write("Mean score of the correct neighborhoods:\n")
-            file.write(str(correct_neigboorhood_score.mean()) + "\n\n")
-            # file.write("Standard deviation of the score of the correct neighborhoods:\n")
-            # file.write(str(correct_neigboorhood_score.std()) + "\n\n")
-            file.write("Threshold for the correct neighborhoods:\n")
-            file.write(str(correct_neigboorhood_score.mean() - std_dev/math.sqrt(0.9))+"\n")
-            # file.write("Min and max values of the correct neighboorhoods score :\n")
-            # file.write(str(correct_neigboorhood_score.min()) + "\n")
-            # file.write(str(correct_neigboorhood_score.max()) + "\n\n")
-
-            file.write("Mean score of the incorrect neighborhoods:\n")
-            file.write(str(incorrect_neighborhood_score.mean()) + "\n\n")
-            # file.write("Standard deviation of the score of the incorrect neighborhoods:\n")
-            # file.write(str(incorrect_neighborhood_score.std()) + "\n\n")
-            file.write("Threshold for the incorrect neighborhoods:\n")
-            file.write(str(incorrect_neighborhood_score.mean() + std_dev_incorrect/math.sqrt(0.9)) + "\n\n")
-            # file.write("Min and max values of the incorrect neighboorhoods score :\n")
-            # file.write(str(incorrect_neighborhood_score.min()) + "\n")
-            # file.write(str(incorrect_neighborhood_score.max()) + "\n\n")
-
-            file.write("Optimal threshold for the deviation:\n")
-            file.write(str(threshold_opti) + "\n\n")
-
-            file.write("False negatives:\n")
-            file.write(str(false_negatives) + "\n")
-            file.write("False positives:\n")
-            file.write(str(false_positives) + "\n")
-            
-            file.write("END OF RESULTS\n\n\n")
 
         if false_negatives + false_positives < fn_min + fp_min:
             fn_min = false_negatives
